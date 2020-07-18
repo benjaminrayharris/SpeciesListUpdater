@@ -9,13 +9,35 @@
 //import java.io.IOException;
 //import java.io.FileNotFoundException;
 //import java.io.*;
+//Class for the SpeciesList Updater program
+//July, 11 2020
+
+//import java.awt.Dimension;
+//import javax.swing.JFrame;
+//import java.awt.event.WindowAdapter;
+//import java.awt.event.WindowEvent;
+//import java.io.IOException;
+//import java.io.FileNotFoundException;
+//import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.InputStream;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -46,35 +68,125 @@ public class SLUMain {
 		//win.setIconImage(eng.sbsImage);
 		*/
 
-		
+		checkVersion();
 		popup("in main() about to set variables", null);
 		//String url = "https://github.com/benjaminrayharris/SpeciesList/blob/master/sl.jar";
-		String url = "https://benjaminharris.info/download/test.txt";
+		//String url = "https://github.com/benjaminrayharris/SpeciesList/raw/version_2_0/test.txt";
+		String url = "";
 		
 		String dir = getDir();
 		
 		//String file = dir + File.separator + "sl.jar";
 		//String bupf = dir + File.separator + "bu.sl.jar";
+		//String tmpf = dir + File.separator + "temp.sl.jar";
 		String file = dir + File.separator + "test.txt";
 		String bupf = dir + File.separator + "bu.test.txt";
+		String tmpf = dir + File.separator + "temp.test.txt";
 		
 		
-
 		popup("in main() verify file is there", null);
 		//verify file is available to download
 
-		if (ask("Should current version be backed up?\n"
-				+ "And overwrite previously backed up version?")) {
+		if (ask("\n    Should current version be backed up?           \n"
+				+ "\n    And overwrite the previously backed up version?")) {
 			backupFile(file, bupf);
 		} // end if
 		
 		//download new version
-		getFileFromInternet(url, file);
+		getFileFromURL(url, file, tmpf);
 		
 		//start new version
 		
 		
 	} // end main()
+	
+	private static void getFileFromURL (String url, String file, String tmpf) {
+		
+		    try {
+		    	InputStream in = URI.create(url).toURL().openStream();
+		        //Files.copy(in, file);
+		    	Files.copy(in, Paths.get(file));
+		    } catch (Exception e) {
+		    	
+		    } // end try-catch
+		
+	} // end getFileFromURL()
+	
+	private static String jget (String url) {
+
+		URL u;
+		InputStream is = null;
+		BufferedInputStream bis = null;
+		DataInputStream dis;
+		String s = null;
+		try {
+			u = new URL(url);
+			is = u.openStream();
+			bis = new BufferedInputStream(is);
+			dis = new DataInputStream(bis);
+			while ((s = dis.readUTF()) != null) {
+				popup(s, null);
+			}  // end while
+		} catch (MalformedURLException mue) {
+			System.err.println("Ouch - a MalformedURLException happened.");
+			mue.printStackTrace();
+			System.exit(2);
+		} catch (IOException ioe) {
+			System.err.println("Oops- an IOException happened.");
+			ioe.printStackTrace();
+			System.exit(3);
+		} finally {
+			try {
+				is.close();
+			} catch (IOException ioe) {
+    		
+			} // end try-catch
+		} // end try-catch-catch-finally
+		return s;
+
+		
+	} // end jget()
+	
+
+	private static String checkVersion () {
+		String url = "https://github.com/benjaminrayharris/SpeciesList/raw/version_2_0/test.txt";
+		URL u;
+		InputStream is = null;
+		BufferedInputStream bis = null;
+		BufferedReader d;
+		DataInputStream dis;
+		String s = null;
+		String str = null;
+		try {
+			u = new URL(url);
+			is = u.openStream();
+			bis = new BufferedInputStream(is);
+			d = new BufferedReader(new InputStreamReader(bis));
+			while ((s = d.readLine()) != null) {
+				popup(s, null);
+				str = s;
+			}  // end while
+		} catch (EOFException eofe) {
+			popup("in catch: " + s, null);
+		} catch (MalformedURLException mue) {
+			System.err.println("Ouch - a MalformedURLException happened.");
+			mue.printStackTrace();
+			System.exit(2);
+		} catch (IOException ioe) {
+			System.err.println("Oops- an IOException happened.");
+			ioe.printStackTrace();
+			System.exit(3);
+		} finally {
+			try {
+				is.close();
+			} catch (IOException ioe) {
+			} // end try-catch
+		} // end try-catch-catch-finally
+		popup(str, null);
+		return str;		
+	} // end checkVersion()
+	
+	
 	
 	private static String getDir () {
 		File f = null;
@@ -88,16 +200,60 @@ public class SLUMain {
 		return dirPath;
 	} // end setDir()
 	
-	private static void getFileFromInternet (String url, String path) {
+	private static void getFileFromInternet (String url, String path, String tmpf) {
+		URL u;
+		//InputStream is = null;
+		//BufferedInputStream bis = null;
+		//DataInputStream dis = null;
+		//String s = null;
+			
+		File q;
 
 
+
+        popup(tmpf, null);
 		try {
-			URL resource = new URL(url);
+
+			popup(url, null);
+			u = new URL(url);
+			
+			popup(u + "", null);
+			
+			q = new File(u.toURI());
+			//is = u.openStream();
+			
+
+	        try  {
+	           
+	        
+	        	InputStream is = new FileInputStream(tmpf);
+	        	OutputStream os = new FileOutputStream(path);
+	 
+	            long fileSize = q.length();
+	 
+	            byte[] allBytes = new byte[(int) fileSize];
+	 
+	            is.read(allBytes);
+	 
+	            os.write(allBytes);
+	            
+	            is.close();
+	            os.close();
+	 
+	        } catch (IOException ex) {
+	            ex.printStackTrace();
+	        }
+			
+			
+			//URL resource = new URL(url);
+			//File temp = new File(tmpf);
+			//File file = new File(path);
+			//FileUtils.copyURLToFile(resource, temp);
 		
-			File file = new File(path);
-		
-			FileUtils.copyURLToFile(resource, file);
-		
+			//String str = readFile(tmpf, false);
+			
+			//popup(str, null);
+			
 			
 			//String filename = "";
 			//Response r = Jsoup.connect(url)
@@ -110,7 +266,7 @@ public class SLUMain {
 			//out.close();
 			
 		} catch (Exception e) {
-			
+			popup("getFileFromInternet(): " + e, null);
 		} // end try-catch-catch
 	} // end getFileFromInternet()
 	
@@ -125,7 +281,7 @@ public class SLUMain {
 	} // end ask()
 	
 	private static void backupFile (String file, String bupf) {
-		
+		popup("backing up old sl.jar", null);
 	} // end backupFile()
 	
 	private static String getin (String prmpt) {
@@ -159,8 +315,9 @@ public class SLUMain {
 					return null;
 				} // end if-else
 			} // end if
+			popup("Going to check if file exists.", null);
 			if (!file.exists()) {
-				//popup(file.getName() + " does not exist", null);
+				popup(file.getName() + " does not exist", null);
 				return null;
 			} // end if
 			BufferedReader in = new BufferedReader( new FileReader(file));
