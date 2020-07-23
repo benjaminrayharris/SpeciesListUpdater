@@ -27,20 +27,24 @@ public class SLUMain {
 		String file = dir + File.separator + "sl.jar";
 		String bupf = dir + File.separator + "bu.sl.jar";
 		String tmpf = dir + File.separator + "temp.sl.jar";
-		if (ask("\n\nLast chance to back out. Abort upgrade?\n\n'Yes' to exit\n\n'No' to continue with upgrade\n\n"))
-			System.exit(0);
-		getFileFromURL(url, tmpf);
-		if (!compareChecksums(tmpf)) {
-			pop("ERROR: Downloaded file is corrupt.\n\nAborting upgrade process...");
-			System.exit(0);
-		} // end if
-		backup(file, bupf);
-		renameFile(tmpf, file);
-		try {			
-			Desktop.getDesktop().open(new File(file));
-		} catch (Exception e) {
-			pop("openUpdater(): " + e);
-		} // end try-catch
+		if (!ask("\n\nDo you want to upgrade?\n\n'Yes' to continue with upgrade\n\n")) {
+			if (ask("\n\nDo you want to restore the backup?\n\n'Yes' to restore the previous backup\n\n'No' to quit\n\n")) {
+				pop("The current program will become the backup.\n\nRun the restore process again to undo this restore\n\n");
+				renameFile(file, tmpf);
+				renameFile(bupf, file);
+				renameFile(tmpf, bupf);
+				openFile(file);
+			} // end if
+		} else {
+			getFileFromURL(url, tmpf);
+			if (!compareChecksums(tmpf)) {
+				pop("ERROR: Downloaded file is corrupt.\n\nAborting upgrade process...");
+			} else {
+				backup(file, bupf);
+				renameFile(tmpf, file);
+				openFile(file);
+			} // end if-else
+		} // end if-else
 	} // end main()
 
 	private static void pop (String msg) {
@@ -84,7 +88,7 @@ public class SLUMain {
 		try {
 			String actual = getActualChecksum(path);
 			String known = getKnownChecksum();
-			pop(actual + "\n" + known);
+			//pop(actual + "\n" + known);
 			return actual.equals(known);
 		} catch (Exception e) {
 		} // end try-catch
@@ -176,10 +180,10 @@ public class SLUMain {
 			prmpt += "\n\n'Yes' to cancel upgrade, and save BOTH the current version AND the backed up previous version";
 			prmpt += "\n\n'No' to continue with upgrade process, lose the previous version, back up the current version, and install the new version\n\n";
 			if (!ask(prmpt)) {
-				pop("!!!!!  after yes  !!!!!  result was no - continue with upgrade  !!!!!!!!!!");
+				//pop("!!!!!  after yes  !!!!!  result was no - continue with upgrade  !!!!!!!!!!");
 				renameFile(file, bupf);
 			} else {
-				pop("!!!!!  after yes  !!!!!  result was yes - abort upgrade  !!!!!!!!!!!!!!!!!");
+				//pop("!!!!!  after yes  !!!!!  result was yes - abort upgrade  !!!!!!!!!!!!!!!!!");
 				System.exit(0);
 			} // end if-else
 		} else if (result == no) {
@@ -188,10 +192,9 @@ public class SLUMain {
 			prmpt += "\n\n'Yes' to continue with upgrade process, lose the current version while preserving the previous version, and install the new version";
 			prmpt += "\n\n'No' to cancel upgrade, and save BOTH the current version AND the backed up previous version of program\n\n";
 			if (ask(prmpt)) {
-				pop("!!!!!  after no   !!!!!  result was yes - continue with upgrade  !!!!!!!!!");
-				//renameFile(file, bupf); 
+				//pop("!!!!!  after no   !!!!!  result was yes - continue with upgrade  !!!!!!!!!");
 			} else {
-				pop("!!!!!  after no   !!!!!  result was no - abort upgrade  !!!!!!!!!!!!!!!!!!");
+				//pop("!!!!!  after no   !!!!!  result was no - abort upgrade  !!!!!!!!!!!!!!!!!!");
 				System.exit(0);
 			} // end if-else
 		} else System.exit(0);
@@ -207,5 +210,13 @@ public class SLUMain {
 			pop("renameFile(): " + e);
 		} // end try-catch
 	} // end renameFile()
+
+	private static void openFile (String file) {
+		try {			
+			Desktop.getDesktop().open(new File(file));
+		} catch (Exception e) {
+			pop("openUpdater(): " + e);
+		} // end try-catch
+	} // end openFile()
 
 } // end class SLUMain
